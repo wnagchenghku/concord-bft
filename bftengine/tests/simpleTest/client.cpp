@@ -31,7 +31,6 @@
 #include <thread>
 #include <iostream>
 #include <limits>
-#include <chrono>
 
 // bftEngine includes
 #include "CommFactory.hpp"
@@ -63,20 +62,6 @@ concordlogger::Logger clientLogger =
 #define test_assert(statement, message) \
 { if (!(statement)) { \
 LOG_FATAL(clientLogger, "assert fail with message: " << message); assert(false);}}
-
-typedef uint64_t TimeMicro;
-
-TimeMicro get_monotonic_time() {
-  std::chrono::steady_clock::time_point curTimePoint =
-      std::chrono::steady_clock::now();
-
-  auto timeSinceEpoch = curTimePoint.time_since_epoch();
-  uint64_t micro =
-      std::chrono::duration_cast<std::chrono::microseconds>(
-          timeSinceEpoch).count();
-
-  return micro;
-}
 
 void parse_params(int argc, char** argv, ClientParams &cp,
     bftEngine::SimpleClientParams &scp) {
@@ -273,8 +258,7 @@ int main(int argc, char **argv) {
   // operation.
   bool hasExpectedLastValue = false;
 
-  uint64_t sum_dur = 0;
-  LOG_INFO(clientLogger, "Starting " << cp.numOfOperations);
+  LOG_WARN(clientLogger, "Starting " << cp.numOfOperations);
 
   for (int i = 1; i <= cp.numOfOperations; i++) {
 
@@ -282,11 +266,11 @@ int main(int argc, char **argv) {
     // iterations has been done - that's the reason we use printf and not
     // logging module - to keep the output exactly as we expect.
     if(i > 0 && i % 100 == 0) {
-      printf("Iterations count: 100\n");
-      printf("Total iterations count: %i, total elapsed microseconds %" PRIu64 "\n", i, sum_dur);
+      // printf("Iterations count: 100\n");
+      // printf("Total iterations count: %i\n", i);
+      LOG_WARN(clientLogger, "Total iterations count: " << i);
     }
 
-    uint64_t start = get_monotonic_time();
     if (i % readMod == 0) {
       // Read the latest value every readMod-th operation.
 
@@ -376,9 +360,6 @@ int main(int argc, char **argv) {
         expectedStateNum = retVal;
       }
     }
-    uint64_t end = get_monotonic_time();
-    uint64_t elapsedMicro = end - start;
-    sum_dur += elapsedMicro;
   }
 
   // After all requests have been issued, stop communication and clean up.
@@ -388,6 +369,6 @@ int main(int argc, char **argv) {
   delete client;
   delete comm;
 
-  LOG_INFO(clientLogger, "test done, iterations: " << cp.numOfOperations);
+  LOG_WARN(clientLogger, "test done, iterations: " << cp.numOfOperations);
   return 0;
 }
