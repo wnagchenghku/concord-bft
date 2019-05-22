@@ -40,7 +40,8 @@ enum LogLevel {
   all = trace
 };
 
-constexpr LogLevel CURRENT_LEVEL = LogLevel::info;
+// constexpr LogLevel CURRENT_LEVEL = LogLevel::info;
+constexpr LogLevel CURRENT_LEVEL = LogLevel::warn;
 #define CHECK_ENABLED(l) \
 if (CURRENT_LEVEL == LogLevel::off || l < CURRENT_LEVEL) return;
 
